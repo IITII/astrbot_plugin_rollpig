@@ -37,6 +37,7 @@ class RollPigPlugin(Star):
         # 配置项
         self.admins_id: list[str] = context.get_config().get("admins_id", [])
         self.at_view_pig: bool = self.config.get("at_view_pig", False)
+        self.at_pig_user: bool = self.config.get("at_pig_user", True)
 
         # 初始化路径
         self.plugin_dir = Path(__file__).parent
@@ -349,7 +350,7 @@ class RollPigPlugin(Star):
             if (isinstance(seg, At) and str(seg.qq) != event.get_self_id())  # 排除自己
         ]
 
-    @filter.command("今日小猪", alias={"抽小猪", "我的小猪", "rollpig"})
+    @filter.command("今日小猪", alias={"抽小猪", "我的小猪", "rollpig", "pig"})
     async def roll_pig(self, event: AstrMessageEvent):
         """抽取今日小猪"""
         today_str = datetime.date.today().isoformat()
@@ -398,7 +399,8 @@ class RollPigPlugin(Star):
                 group_id = event.get_group_id()
                 if group_id:
                     chain.insert(0, Comp.At(qq=user_id))
-                await event.send(event.chain_result(chain))
+                if self.at_pig_user:
+                    await event.send(event.chain_result(chain))
                 await event.send(event.image_result(str(img_path.absolute())))
                 logger.info("合成图片发送成功")
                 return
